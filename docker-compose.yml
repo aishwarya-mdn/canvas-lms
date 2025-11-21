@@ -1,22 +1,35 @@
-# See doc/docker/README.md or https://github.com/instructure/canvas-lms/tree/master/doc/docker
+version: "3.3"
+
 services:
-  web: &WEB
-    build:
-      context: .
-    links:
+  postgres:
+    image: postgres:12
+    environment:
+      POSTGRES_USER: canvas
+      POSTGRES_PASSWORD: canvas
+      POSTGRES_DB: canvas_production
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:latest
+
+  canvas:
+    image: instructure/canvas-lms:stable
+    depends_on:
       - postgres
       - redis
     environment:
-      POSTGRES_PASSWORD: sekret
+      CANVAS_LMS_DB_HOST: postgres
+      CANVAS_LMS_DB_USERNAME: canvas
+      CANVAS_LMS_DB_PASSWORD: canvas
+      CANVAS_LMS_DB_NAME: canvas_production
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "3000:3000"
+    command: bash -c "
+      bundle exec rake db:initial_setup &&
+      bundle exec rails s -b 0.0.0.0
+    "
 
-  jobs:
-    <<: *WEB
-    command: bundle exec script/delayed_job run
-
-  postgres:
-    build: ./docker-compose/postgres
-    environment:
-      POSTGRES_PASSWORD: sekret
-
-  redis:
-    image: redis:alpine
+volumes:
+  postgres_data:
