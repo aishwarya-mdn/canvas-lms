@@ -1,0 +1,14 @@
+{
+  "name": "Canvas LMS",
+  "dockerComposeFile": ["../docker-compose.yml"],
+  "service": "canvas",
+  "workspaceFolder": "/workspace",
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": {
+      "label": "Canvas LMS",
+      "onAutoForward": "openBrowser"
+    }
+  },
+  "postCreateCommand": "echo 'Codespace ready'"
+}
